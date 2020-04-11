@@ -1,13 +1,12 @@
 {
-  "name": "aws-rest-api-offline",
+  "name": "okta-dac-domains-serverless",
   "version": "1.0.0",
-  "description": "Serverless REST API with DynamoDB and offline support",
-  "repository": "",
-  "author": "Christoph Gysin <christoph.gysin@gmail.com>",
+  "description": "Serverless REST API with DynamoDB and offline support for Delegated Admin Console",
+  "repository": "https://github.com/udplabs/okta-dac-domains-serverless",
+  "author": "Maneesh Sahu <maneesh.sahu@okta.com>",
   "license": "MIT",
   "dependencies": {
-    "npm-check-updates": "^4.1.2",
-    "uuid": "^7.0.3"
+    "serverless": "^1.67.3"
   },
   "devDependencies": {
     "aws-sdk": "^2.656.0",
