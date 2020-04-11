@@ -1,23 +1,4 @@
-<!--
-title: 'AWS Serverless REST API with DynamoDB and offline support example in NodeJS'
-description: 'This example demonstrates how to run a service locally, using the ''serverless-offline'' plugin. It provides a REST API to manage Todos stored in DynamoDB.'
-layout: Doc
-framework: v1
-platform: AWS
-language: nodeJS
-authorLink: 'https://github.com/adambrgmn'
-authorName: 'Adam Bergman'
-authorAvatar: 'https://avatars1.githubusercontent.com/u/13746650?v=4&s=140'
--->
-# Serverless REST API with DynamoDB and offline support
-
-This example demonstrates how to run a service locally, using the
-[serverless-offline](https://github.com/dherault/serverless-offline) plugin. It
-provides a REST API to manage Todos stored in a DynamoDB, similar to the
-[aws-node-rest-api-with-dynamodb](https://github.com/serverless/examples/tree/master/aws-node-rest-api-with-dynamodb)
-example. A local DynamoDB instance is provided by the
-[serverless-dynamodb-local](https://github.com/99xt/serverless-dynamodb-local)
-plugin.
+# DAC - Domains API
 
 ## Use-case
 
@@ -42,57 +23,64 @@ serverless offline start
 
 You can create, retrieve, update, or delete todos with the following commands:
 
-### Create a Todo
+### Create a Domain
 
 ```bash
-curl -X POST -H "Content-Type:application/json" http://localhost:3000/todos --data '{ "text": "Learn Serverless" }'
+curl -X POST -H "Content-Type:application/json" http://localhost:3000/domain --data '{ "domain": "boeing.com", "idp": "idp001" }'
 ```
 
 Example Result:
+
 ```bash
-{"text":"Learn Serverless","id":"ee6490d0-aa11e6-9ede-afdfa051af86","createdAt":1479138570824,"checked":false,"updatedAt":1479138570824}%
+{"domain":"boeing.com","idp":"idp001","created":1479138570824}
 ```
 
-### List all Todos
+### List Domains for an Idp
 
 ```bash
-curl -H "Content-Type:application/json" http://localhost:3000/todos
+curl -H "Content-Type:application/json" http://localhost:3000/domains?idp={idp}
 ```
 
 Example output:
+
 ```bash
-[{"text":"Deploy my first service","id":"ac90feaa11e6-9ede-afdfa051af86","checked":true,"updatedAt":1479139961304},{"text":"Learn Serverless","id":"206793aa11e6-9ede-afdfa051af86","createdAt":1479139943241,"checked":false,"updatedAt":1479139943241}]%
+[{ "domain": "boeing.com", "idp": "idp001","created":1479138570824 }]
 ```
 
-### Get one Todo
+### Perform a Webfinger
 
 ```bash
-# Replace the <id> part with a real id from your todos table
-curl -H "Content-Type:application/json" http://localhost:3000/todos/<id>
-```
-
-Example Result:
-```bash
-{"text":"Learn Serverless","id":"ee6490d0-aa11e6-9ede-afdfa051af86","createdAt":1479138570824,"checked":false,"updatedAt":1479138570824}%
-```
-
-### Update a Todo
-
-```bash
-# Replace the <id> part with a real id from your todos table
-curl -X PUT -H "Content-Type:application/json" http://localhost:3000/todos/<id> --data '{ "text": "Learn Serverless", "checked": true }'
+# Replace the resource with an email address
+curl -H "Content-Type:application/json" http://localhost:3000/.well-known/webfinger?resource={email}
 ```
 
 Example Result:
+
 ```bash
-{"text":"Learn Serverless","id":"ee6490d0-aa11e6-9ede-afdfa051af86","createdAt":1479138570824,"checked":true,"updatedAt":1479138570824}%
+{
+    "subject": "pankaj@jepessen.com",
+    "links": [
+        {
+            "rel": "okta:idp",
+            "href": "/sso/idps/idp001",
+            "titles": {
+                "und": "MTASamlIdp"
+            },
+            "properties": {
+                "okta:idp:metadata": "/api/v1/idps/idp001/metadata.xml",
+                "okta:idp:type": "SAML2",
+                "okta:idp:id": "idp001"
+            }
+        }
+    ]
+}%
 ```
 
-### Delete a Todo
+### Delete a Domain
 
 ```bash
 # Replace the <id> part with a real id from your todos table
-curl -X DELETE -H "Content-Type:application/json" http://localhost:3000/todos/<id>
+curl -X DELETE -H "Content-Type:application/json" http://localhost:3000/domains/{idp}/{domain}/
 ```
 
 No output
