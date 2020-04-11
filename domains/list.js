@@ -12,7 +12,10 @@ module.exports.list = (event, context, callback) => {
     ExpressionAttributeValues: {
       ":value": event.queryStringParameters.idp,
     },
-    Select: "ALL_ATTRIBUTES",
+    ProjectionExpression: "#name,created,verified",
+    ExpressionAttributeNames: {
+      "#name": "name", // name is a reserved word, should have just used domain :P
+    },
   };
 
   console.log("Query", JSON.stringify(params));
