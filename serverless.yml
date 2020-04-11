@@ -1,0 +1,108 @@
+service: okta-domains
+
+frameworkVersion: ">=1.1.0 <2.0.0"
+
+plugins:
+  - serverless-dynamodb-local
+  - serverless-offline
+
+custom:
+  dynamodb:
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+    migration:
+      dir: offline/migrations
+    stages:
+      - dev
+      - test
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  environment:
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+
+functions:
+  webfinger:
+    handler: domains/webfinger.webfinger
+    events:
+      - http:
+          path: .well-known/webfinger
+          method: get
+          cors: true
+
+  addDomain:
+    handler: domains/create.create
+    events:
+      - http:
+          path: domains
+          method: post
+          cors: true
+
+  removeDomain:
+    handler: domains/delete.delete
+    events:
+      - http:
+          path: domains/{idp}/{name}
+          method: delete
+          cors: true
+
+  listDomains:
+    handler: domains/list.list
+    events:
+      - http:
+          path: domains
+          method: get
+          cors: true
+
+resources:
+  Resources:
+    DomainsDynamoDbTable:
+      Type: "AWS::DynamoDB::Table"
+      DeletionPolicy: Retain
+      Properties:
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        AttributeDefinitions:
+          - AttributeName: name
+            AttributeType: S
+          - AttributeName: idp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: idp
+            KeyType: HASH
+          - AttributeName: name
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: idps-${self:provider.environment.DYNAMODB_TABLE}
+            KeySchema:
+              - AttributeName: idp
+                KeyType: HASH
+            Projection:
+              NonKeyAttributes:
+                - name
+                - created
+                - verified
+              ProjectionType: INCLUDE
+          - IndexName: domains-${self:provider.environment.DYNAMODB_TABLE}
+            KeySchema:
+              - AttributeName: name
+                KeyType: HASH
+            Projection:
+              NonKeyAttributes:
+                - idp
+                - created
+                - verified
+              ProjectionType: INCLUDE
+        BillingMode: PAY_PER_REQUEST

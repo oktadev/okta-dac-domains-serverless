@@ -1,0 +1,3 @@
+.serverless
+.dynamodb
+node_modules
