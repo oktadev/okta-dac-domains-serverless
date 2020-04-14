@@ -1,32 +1,34 @@
 # DAC - Domains API
 
-## Use-case
+## Pre-requisites
+
+- npm
+- serverless
+- aws account (create profile - udp-admin)
+- java (to run dynamodb on local stack)
+
+## Local Stack
 
 Test your service locally, without having to deploy it first.
 
 ## Setup
 
-Create a JSON file with the environment variables for the target environment (dev, stage, prod):
-
-e.g, for dev create `dev.env.json`
-
-```javascript
-{
-  "API_KEY": "<OKTA_API_KEY>",
-  "ORG": "https://<tenant>.oktapreview.com"
-}
-```
+Install dependencies, installl dynamodb/local stack, start serverless-offline:
 
 ```bash
 npm install
 serverless dynamodb install
+export IS_OFFLINE=true
 serverless offline start
 serverless dynamodb migrate (this imports schema)
 ```
 
 ## Run service offline
 
+Make sure the set IS_OFFLINE to true.
+
 ```bash
+export IS_OFFLINE=true
 serverless offline start
 ```
 
