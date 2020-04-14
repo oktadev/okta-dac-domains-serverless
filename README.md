@@ -25,7 +25,7 @@ serverless dynamodb migrate (this imports schema)
 
 ## Run service offline
 
-Make sure the set IS_OFFLINE to true.
+Make sure to set `IS_OFFLINE` to `true`.
 
 ```bash
 export IS_OFFLINE=true
