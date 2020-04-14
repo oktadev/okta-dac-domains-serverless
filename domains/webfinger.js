@@ -1,6 +1,6 @@
 "use strict";
 
-const dynamodb = require("./dynamodb");
+const dynamodb = require("./_dynamodb");
 const middy = require("middy");
 const { cors, httpErrorHandler } = require("middy/middlewares");
 

@@ -1,6 +1,6 @@
 "use strict";
 
-const dynamodb = require("./dynamodb");
+const dynamodb = require("./_dynamodb");
 const middy = require("middy");
 const {
   cors,
@@ -22,6 +22,8 @@ const createDomain = async (event) => {
         verified: verified,
         created: new Date().getTime(),
       },
+      ConditionExpression: "attribute_not_exists(#name)",
+      ExpressionAttributeNames: { "#name": "name" },
     };
 
     // write the domain entry to the database
@@ -43,7 +45,7 @@ const createDomain = async (event) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        error: "Could not add the domain for the IdP",
+        error: "Could not add the domain for the IdP. ",
       }),
     };
   }

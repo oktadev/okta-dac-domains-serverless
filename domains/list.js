@@ -2,7 +2,7 @@
 
 const middy = require("middy");
 const { cors, httpErrorHandler } = require("middy/middlewares");
-const dynamodb = require("./dynamodb");
+const dynamodb = require("./_dynamodb");
 
 const listDomains = async (event, context, callback) => {
   console.log("Query Parameters", event.queryStringParameters);
