@@ -6,6 +6,17 @@ Test your service locally, without having to deploy it first.
 
 ## Setup
 
+Create a JSON file with the environment variables for the target environment (dev, stage, prod):
+
+e.g, for dev create `dev.env.json`
+
+```javascript
+{
+  "API_KEY": "<OKTA_API_KEY>",
+  "ORG": "https://<tenant>.oktapreview.com"
+}
+```
+
 ```bash
 npm install
 serverless dynamodb install
@@ -73,7 +84,7 @@ Example Result:
             }
         }
     ]
-}%
+}
 ```
 
 ### Delete a Domain

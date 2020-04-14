@@ -1,3 +1,4 @@
 .serverless
 .dynamodb
 node_modules
+domains_gen

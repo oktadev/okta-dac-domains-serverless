@@ -1,8 +1,10 @@
 "use strict";
 
 const dynamodb = require("./dynamodb");
+const middy = require("middy");
+const { cors, httpErrorHandler } = require("middy/middlewares");
 
-module.exports.webfinger = (event, context, callback) => {
+const webfinger = async (event) => {
   console.log("Query Parameters", event.queryStringParameters);
   let subject = event.queryStringParameters.resource;
   let domain = subject.split("@").pop();
@@ -21,44 +23,59 @@ module.exports.webfinger = (event, context, callback) => {
     },
     ProjectionExpression: "idp",
   };
-  dynamodb.query(params, (error, result) => {
-    // handle potential errors
-    if (error || result.Items.length != 1) {
+
+  try {
+    let result = await dynamodb.query(params).promise();
+    console.log("Got result", JSON.stringify(result));
+    if (result.Items.length != 1) {
       console.error(error);
-      callback(null, {
-        statusCode: error.statusCode || 501,
+      return {
+        statusCode: error.statusCode || 500,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           error: "Could not fetch the domains for the IdP",
         }),
-      });
-      return;
+      };
+    } else {
+      // create a response
+      let idp = result.Items[0].idp;
+      let payload = {
+        subject: subject,
+        links: [
+          {
+            rel: "okta:idp",
+            href: `/sso/idps/${idp}`,
+            titles: {
+              und: "MTASamlIdp",
+            },
+            properties: {
+              "okta:idp:metadata": `/api/v1/idps/${idp}/metadata.xml`,
+              "okta:idp:type": "SAML2",
+              "okta:idp:id": idp,
+            },
+          },
+        ],
+      };
+      return {
+        statusCode: 200,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      };
     }
-
-    // create a response
-    let idp = result.Items[0].idp;
-    let payload = {
-      subject: subject,
-      links: [
-        {
-          rel: "okta:idp",
-          href: `/sso/idps/${idp}`,
-          titles: {
-            und: "MTASamlIdp",
-          },
-          properties: {
-            "okta:idp:metadata": `/api/v1/idps/${idp}/metadata.xml`,
-            "okta:idp:type": "SAML2",
-            "okta:idp:id": idp,
-          },
-        },
-      ],
-    };
-    const response = {
-      statusCode: 200,
+  } catch (error) {
+    console.log("error", error);
+    return {
+      statusCode: error.statusCode || 501,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        error: "Could not fetch the domains for the IdP",
+      }),
     };
-    callback(null, response);
-  });
+  }
 };
+
+const handler = middy(webfinger)
+  .use(httpErrorHandler()) // handles common http errors and returns proper responses
+  .use(cors()); // Adds CORS headers to responses
+
+module.exports = { handler };

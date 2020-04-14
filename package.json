@@ -5,12 +5,19 @@
   "repository": "https://github.com/udplabs/okta-dac-domains-serverless",
   "author": "Maneesh Sahu <maneesh.sahu@okta.com>",
   "license": "MIT",
+  "scripts": {
+    "test": "jest"
+  },
   "dependencies": {
-    "serverless": "^1.67.3"
+    "middy": "^0.36.0"
   },
   "devDependencies": {
     "aws-sdk": "^2.656.0",
+    "jest": "^25.3.0",
+    "promisify": "0.0.3",
+    "serverless": "^1.67.3",
     "serverless-dynamodb-local": "^0.2.39",
+    "serverless-jest-plugin": "^0.3.0",
     "serverless-offline": "^6.1.4"
   }
 }

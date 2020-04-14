@@ -5,6 +5,7 @@ frameworkVersion: ">=1.1.0 <2.0.0"
 plugins:
   - serverless-dynamodb-local
   - serverless-offline
+  - serverless-jest-plugin
 
 custom:
   dynamodb:
@@ -17,11 +18,20 @@ custom:
     stages:
       - dev
       - test
+  jest:
+    # You can pass jest options here
+    # See details here: https://facebook.github.io/jest/docs/configuration.html
+    # For instance, uncomment next line to enable code coverage
+    collectCoverage: true
 
 provider:
   name: aws
   runtime: nodejs12.x
   profile: udp-admin
+  region: ${opt:region, 'us-east-1'}
+  stage: ${opt:stage, 'dev'}
+  memorySize: 128
+  timeout: 5
   environment:
     DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
   iamRoleStatements:
@@ -40,7 +50,7 @@ provider:
 
 functions:
   webfinger:
-    handler: domains/webfinger.webfinger
+    handler: domains/webfinger.handler
     events:
       - http:
           path: .well-known/webfinger
@@ -48,7 +58,7 @@ functions:
           cors: true
 
   addDomain:
-    handler: domains/create.create
+    handler: domains/create.handler
     events:
       - http:
           path: domains
@@ -56,7 +66,7 @@ functions:
           cors: true
 
   removeDomain:
-    handler: domains/delete.delete
+    handler: domains/delete.handler
     events:
       - http:
           path: domains/{idp}/{name}
@@ -64,7 +74,7 @@ functions:
           cors: true
 
   listDomains:
-    handler: domains/list.list
+    handler: domains/list.handler
     events:
       - http:
           path: domains
