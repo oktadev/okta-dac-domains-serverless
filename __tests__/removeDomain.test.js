@@ -17,7 +17,7 @@ describe("removeDomain", () => {
   });
 
   it("implement tests here", () => {
-    process.env.DYNAMODB_TABLE = "okta-domains-test";
+    process.env.DYNAMODB_TABLE = "okta-domains-dev";
     const event = {
       pathParameters: {
         name: "zeesh.org",

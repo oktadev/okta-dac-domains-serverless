@@ -6,12 +6,20 @@ const { cors, httpErrorHandler } = require("middy/middlewares");
 
 const removeDomain = async (event) => {
   console.log("domain", event.pathParameters);
+
+  let { name, idp } = event.pathParameters;
+
   const params = {
     TableName: process.env.DYNAMODB_TABLE,
     Key: {
-      name: event.pathParameters.name,
-      idp: event.pathParameters.idp,
+      name,
+      idp,
     },
+    ConditionExpression: "attribute_exists(#name)",
+    ExpressionAttributeNames: {
+      "#name": "name",
+    },
+    ReturnValues: "ALL_OLD",
   };
 
   console.log("Delete Item", JSON.stringify(params));
@@ -22,13 +30,17 @@ const removeDomain = async (event) => {
     console.log("Dynamo db", JSON.stringify(res));
     return {
       statusCode: 200,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(res.Attributes),
     };
   } catch (error) {
     console.log(error);
     return {
       statusCode: error.statusCode || 501,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Could not remove the domain entry" }),
+      body: JSON.stringify({
+        error: `Could not remove the domain entry. Reason: ${error.code}`,
+      }),
     };
   }
 };

@@ -22,7 +22,7 @@ describe("domains.addDomain: Add an entry to match IdP routing rule", () => {
   });
 
   it("implement tests here", () => {
-    process.env.DYNAMODB_TABLE = "okta-domains-test";
+    process.env.DYNAMODB_TABLE = "okta-domains-dev";
     console.log(process.env.DYNAMODB_TABLE);
     const event = {
       body: {

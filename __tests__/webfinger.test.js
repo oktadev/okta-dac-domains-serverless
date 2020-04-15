@@ -17,7 +17,7 @@ describe("webfinger", () => {
   });
 
   it("implement tests here", () => {
-    process.env.DYNAMODB_TABLE = "okta-domains-test";
+    process.env.DYNAMODB_TABLE = "okta-domains-dev";
     const event = {
       queryStringParameters: {
         resource: "maneesh@zeesh.org",

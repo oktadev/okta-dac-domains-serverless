@@ -8,10 +8,6 @@
   "scripts": {
     "test": "jest"
   },
-  "jest": {
-    "globalSetup": "./__tests__/globalSetup",
-    "globalTeardown": "./__tests__/globalTeardown"
-  },
   "dependencies": {
     "middy": "^0.36.0"
   },

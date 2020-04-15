@@ -49,20 +49,20 @@ provider:
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}/index/*"
 
 functions:
-  webfinger:
-    handler: domains/webfinger.handler
-    events:
-      - http:
-          path: .well-known/webfinger
-          method: get
-          cors: true
-
   addDomain:
     handler: domains/create.handler
     events:
       - http:
           path: domains
           method: post
+          cors: true
+
+  getDomain:
+    handler: domains/get.handler
+    events:
+      - http:
+          path: domains/{name}
+          method: get
           cors: true
 
   removeDomain:
@@ -78,6 +78,14 @@ functions:
     events:
       - http:
           path: domains
+          method: get
+          cors: true
+
+  webfinger:
+    handler: domains/webfinger.handler
+    events:
+      - http:
+          path: .well-known/webfinger
           method: get
           cors: true
 

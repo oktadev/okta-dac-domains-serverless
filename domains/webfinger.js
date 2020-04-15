@@ -28,12 +28,11 @@ const webfinger = async (event) => {
     let result = await dynamodb.query(params).promise();
     console.log("Got result", JSON.stringify(result));
     if (result.Items.length != 1) {
-      console.error(error);
       return {
-        statusCode: error.statusCode || 500,
+        statusCode: 404,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          error: "Could not fetch the domains for the IdP",
+          error: `No IdP associated with domain: '${domain}' using email: '${subject}'`,
         }),
       };
     } else {

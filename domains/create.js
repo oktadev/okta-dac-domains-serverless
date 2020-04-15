@@ -39,13 +39,14 @@ const createDomain = async (event) => {
     };
   } catch (error) {
     console.log("error", error);
+
     return {
-      statusCode: error.status || 500,
+      statusCode: error.statusCode || 500,
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        error: "Could not add the domain for the IdP. ",
+        error: `Could not add the domain for the IdP. Reason: ${error.code}`,
       }),
     };
   }

@@ -17,7 +17,7 @@ describe("listDomains", () => {
   });
 
   it("implement tests here", () => {
-    process.env.DYNAMODB_TABLE = "okta-domains-test";
+    process.env.DYNAMODB_TABLE = "okta-domains-dev";
     const event = {
       queryStringParameters: {
         idp: "0oaqqgucju9H7WJhc0h7",
