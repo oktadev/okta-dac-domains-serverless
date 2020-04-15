@@ -69,7 +69,7 @@ functions:
     handler: domains/delete.handler
     events:
       - http:
-          path: domains/{idp}/{name}
+          path: domains/{name}
           method: delete
           cors: true
 
