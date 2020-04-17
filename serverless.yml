@@ -151,6 +151,43 @@ functions:
 
 resources:
   Resources:
+    DomainsDynamoDbTable:
+      Type: "AWS::DynamoDB::Table"
+      DeletionPolicy: Retain
+      Properties:
+        TableName: ${self:provider.environment.DOMAINS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: domain
+            AttributeType: S
+          - AttributeName: idp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: idp
+            KeyType: HASH
+          - AttributeName: domain
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: idps-${self:provider.environment.DOMAINS_TABLE}
+            KeySchema:
+              - AttributeName: idp
+                KeyType: HASH
+            Projection:
+              NonKeyAttributes:
+                - domain
+                - created
+                - verified
+              ProjectionType: INCLUDE
+          - IndexName: domains-${self:provider.environment.DOMAINS_TABLE}
+            KeySchema:
+              - AttributeName: domain
+                KeyType: HASH
+            Projection:
+              NonKeyAttributes:
+                - idp
+                - created
+                - verified
+              ProjectionType: INCLUDE
+        BillingMode: PAY_PER_REQUEST
     VerificationsDynamoDbTable:
       Type: "AWS::DynamoDB::Table"
       DeletionPolicy: Retain
@@ -192,42 +229,5 @@ resources:
                 - updated
                 - verified
                 - dnsVerificationString
-              ProjectionType: INCLUDE
-        BillingMode: PAY_PER_REQUEST
-    DomainsDynamoDbTable:
-      Type: "AWS::DynamoDB::Table"
-      DeletionPolicy: Retain
-      Properties:
-        TableName: ${self:provider.environment.DOMAINS_TABLE}
-        AttributeDefinitions:
-          - AttributeName: domain
-            AttributeType: S
-          - AttributeName: idp
-            AttributeType: S
-        KeySchema:
-          - AttributeName: idp
-            KeyType: HASH
-          - AttributeName: domain
-            KeyType: RANGE
-        GlobalSecondaryIndexes:
-          - IndexName: idps-${self:provider.environment.DOMAINS_TABLE}
-            KeySchema:
-              - AttributeName: idp
-                KeyType: HASH
-            Projection:
-              NonKeyAttributes:
-                - domain
-                - created
-                - verified
-              ProjectionType: INCLUDE
-          - IndexName: domains-${self:provider.environment.DOMAINS_TABLE}
-            KeySchema:
-              - AttributeName: domain
-                KeyType: HASH
-            Projection:
-              NonKeyAttributes:
-                - idp
-                - created
-                - verified
               ProjectionType: INCLUDE
         BillingMode: PAY_PER_REQUEST
