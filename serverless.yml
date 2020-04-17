@@ -6,8 +6,14 @@ plugins:
   - serverless-dynamodb-local
   - serverless-offline
   - serverless-jest-plugin
+  - serverless-domain-manager
 
 custom:
+  customDomain:
+    domainName: api-${self:provider.stage}.idp.rocks
+    basePath: ""
+    stage: ${self:provider.stage}
+    createRoute53Record: false
   dynamodb:
     start:
       port: 8000

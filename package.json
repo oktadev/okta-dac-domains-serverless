@@ -20,6 +20,7 @@
     "local-dynamo": "^0.6.0",
     "promisify": "0.0.3",
     "serverless": "^1.67.3",
+    "serverless-domain-manager": "^3.3.1",
     "serverless-dynamodb-local": "^0.2.39",
     "serverless-jest-plugin": "^0.3.0",
     "serverless-offline": "^6.1.4"
