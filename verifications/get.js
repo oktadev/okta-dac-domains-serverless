@@ -4,22 +4,24 @@ const middy = require("middy");
 const { cors, httpErrorHandler } = require("middy/middlewares");
 const dynamodb = require("./_dynamodb");
 
-const getDomain = async (event, context, callback) => {
+const getVerification = async (event, context, callback) => {
   console.log("domain", event.pathParameters);
   let domain = event.pathParameters.domain;
 
   try {
     const params = {
-      TableName: process.env.DOMAINS_TABLE,
-      IndexName: "domains-" + process.env.DOMAINS_TABLE,
+      TableName: process.env.VERIFICATIONS_TABLE,
+      IndexName: "domains-" + process.env.VERIFICATIONS_TABLE,
       KeyConditionExpression: "#domain = :value",
       ExpressionAttributeNames: {
         "#domain": "domain", // name is a reserved word, should have just used domain :P
+        "#updated": "updated",
       },
       ExpressionAttributeValues: {
         ":value": domain,
       },
-      ProjectionExpression: "idp, created, verified",
+      ProjectionExpression:
+        "idp, tenant, created, #updated, dnsVerificationString, verified",
     };
 
     // fetch all domains from the database that match an idp
@@ -36,7 +38,7 @@ const getDomain = async (event, context, callback) => {
         statusCode: 404,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          error: `No entry for domain: '${domain}'`,
+          error: `No verification entry for domain: '${domain}'`,
         }),
       };
     }
@@ -46,13 +48,13 @@ const getDomain = async (event, context, callback) => {
       statusCode: error.statusCode || 501,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        error: "Could not retrieve domain details.",
+        error: "Could not retrieve domain verification details.",
       }),
     };
   }
 };
 
-const handler = middy(getDomain)
+const handler = middy(getVerification)
   .use(httpErrorHandler()) // handles common http errors and returns proper responses
   .use(cors()); // Adds CORS headers to responses
 

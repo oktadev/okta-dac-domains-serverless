@@ -12,11 +12,11 @@ const webfinger = async (event) => {
   console.log("Looking up: " + domain);
 
   const params = {
-    TableName: process.env.DYNAMODB_TABLE,
-    IndexName: "domains-" + process.env.DYNAMODB_TABLE,
-    KeyConditionExpression: "#name = :value",
+    TableName: process.env.DOMAINS_TABLE,
+    IndexName: "domains-" + process.env.DOMAINS_TABLE,
+    KeyConditionExpression: "#domain = :value",
     ExpressionAttributeNames: {
-      "#name": "name", // name is a reserved word, should have just used domain :P
+      "#domain": "domain", // name is a reserved word, should have just used domain :P
     },
     ExpressionAttributeValues: {
       ":value": domain,

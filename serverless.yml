@@ -33,7 +33,9 @@ provider:
   memorySize: 128
   timeout: 5
   environment:
-    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    DNS_VERIFY_PREFIX: _oktadac.verification
+    DOMAINS_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    VERIFICATIONS_TABLE: ${self:service}-verify-${opt:stage, self:provider.stage}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -42,11 +44,23 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DOMAINS_TABLE}"
     - Effect: Allow
       Action:
         - dynamodb:Query
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}/index/*"
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DOMAINS_TABLE}/index/*"
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.VERIFICATIONS_TABLE}"
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.VERIFICATIONS_TABLE}/index/*"
 
 functions:
   addDomain:
@@ -57,11 +71,19 @@ functions:
           method: post
           cors: true
 
+  # verifyDomain:
+  #   handler: domains/update.handler
+  #   events:
+  #     - http:
+  #         path: domains/{name}/verify
+  #         method: put
+  #         cors: true
+
   getDomain:
     handler: domains/get.handler
     events:
       - http:
-          path: domains/{name}
+          path: domains/{domain}
           method: get
           cors: true
 
@@ -69,7 +91,7 @@ functions:
     handler: domains/delete.handler
     events:
       - http:
-          path: domains/{name}
+          path: domains/{domain}
           method: delete
           cors: true
 
@@ -89,37 +111,112 @@ functions:
           method: get
           cors: true
 
+  createVerification:
+    handler: verifications/create.handler
+    events:
+      - http:
+          path: verifications
+          method: post
+          cors: true
+
+  checkVerification:
+    handler: verifications/verify.handler
+    events:
+      - http:
+          path: verifications/{domain}
+          method: put
+          cors: true
+
+  getVerification:
+    handler: verifications/get.handler
+    events:
+      - http:
+          path: verifications/{domain}
+          method: get
+          cors: true
+
+  deleteVerification:
+    handler: verifications/delete.handler
+    events:
+      - http:
+          path: verifications/{domain}
+          method: delete
+          cors: true
+
 resources:
   Resources:
-    DomainsDynamoDbTable:
+    VerificationsDynamoDbTable:
       Type: "AWS::DynamoDB::Table"
       DeletionPolicy: Retain
       Properties:
-        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        TableName: ${self:provider.environment.VERIFICATIONS_TABLE}
         AttributeDefinitions:
-          - AttributeName: name
+          - AttributeName: domain
             AttributeType: S
           - AttributeName: idp
             AttributeType: S
         KeySchema:
           - AttributeName: idp
             KeyType: HASH
-          - AttributeName: name
+          - AttributeName: domain
             KeyType: RANGE
         GlobalSecondaryIndexes:
-          - IndexName: idps-${self:provider.environment.DYNAMODB_TABLE}
+          - IndexName: idps-${self:provider.environment.DOMAINS_TABLE}
             KeySchema:
               - AttributeName: idp
                 KeyType: HASH
             Projection:
               NonKeyAttributes:
-                - name
+                - domain
+                - tenant
+                - created
+                - updated
+                - verified
+                - dnsVerificationString
+              ProjectionType: INCLUDE
+          - IndexName: domains-${self:provider.environment.VERIFICATIONS_TABLE}
+            KeySchema:
+              - AttributeName: domain
+                KeyType: HASH
+            Projection:
+              NonKeyAttributes:
+                - idp
+                - tenant
+                - created
+                - updated
+                - verified
+                - dnsVerificationString
+              ProjectionType: INCLUDE
+        BillingMode: PAY_PER_REQUEST
+    DomainsDynamoDbTable:
+      Type: "AWS::DynamoDB::Table"
+      DeletionPolicy: Retain
+      Properties:
+        TableName: ${self:provider.environment.DOMAINS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: domain
+            AttributeType: S
+          - AttributeName: idp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: idp
+            KeyType: HASH
+          - AttributeName: domain
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: idps-${self:provider.environment.DOMAINS_TABLE}
+            KeySchema:
+              - AttributeName: idp
+                KeyType: HASH
+            Projection:
+              NonKeyAttributes:
+                - domain
                 - created
                 - verified
               ProjectionType: INCLUDE
-          - IndexName: domains-${self:provider.environment.DYNAMODB_TABLE}
+          - IndexName: domains-${self:provider.environment.DOMAINS_TABLE}
             KeySchema:
-              - AttributeName: name
+              - AttributeName: domain
                 KeyType: HASH
             Projection:
               NonKeyAttributes:

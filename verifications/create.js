@@ -1,6 +1,7 @@
 "use strict";
 
 const dynamodb = require("./_dynamodb");
+const uuid = require("uuid4");
 const middy = require("middy");
 const {
   cors,
@@ -9,17 +10,19 @@ const {
   httpErrorHandler,
 } = require("middy/middlewares");
 
-const createDomain = async (event) => {
-  const { domain, idp, tenant, verified } = event.body;
+const createVerification = async (event) => {
+  console.log("createVerification( " + JSON.stringify(event.body) + " )");
+  const { domain, idp, tenant } = event.body;
+  let dnsVerificationString = uuid();
 
   try {
     const params = {
-      TableName: process.env.DOMAINS_TABLE,
+      TableName: process.env.VERIFICATIONS_TABLE,
       Item: {
         domain,
         idp,
         tenant,
-        verified,
+        dnsVerificationString,
         created: new Date().getTime(),
       },
       ConditionExpression: "attribute_not_exists(#domain)",
@@ -46,7 +49,7 @@ const createDomain = async (event) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        error: `Could not add the domain for the IdP. Reason: ${error.code}`,
+        error: `Could not add the verification for the IdP. Reason: ${error.code}`,
       }),
     };
   }
@@ -61,14 +64,13 @@ const inputSchema = {
         domain: { type: "string" },
         tenant: { type: "string" },
         idp: { type: "string" },
-        verified: { type: "boolean" },
       },
       required: ["domain", "tenant", "idp"], // Insert here all required event properties
     },
   },
 };
 
-const handler = middy(createDomain)
+const handler = middy(createVerification)
   .use(jsonBodyParser()) // parses the request body when it's a JSON and converts it to an object
   .use(validator({ inputSchema })) // validates the input
   .use(httpErrorHandler()) // handles common http errors and returns proper responses

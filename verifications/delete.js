@@ -11,11 +11,11 @@ const removeDomain = async (event) => {
 
   try {
     const queryParams = {
-      TableName: process.env.DOMAINS_TABLE,
-      IndexName: "domains-" + process.env.DOMAINS_TABLE,
+      TableName: process.env.VERIFICATIONS_TABLE,
+      IndexName: "domains-" + process.env.VERIFICATIONS_TABLE,
       KeyConditionExpression: "#domain = :value",
       ExpressionAttributeNames: {
-        "#domain": "domain", // name is a reserved word, should have just used domain :P
+        "#domain": "domain",
       },
       ExpressionAttributeValues: {
         ":value": domain,
@@ -34,7 +34,7 @@ const removeDomain = async (event) => {
         statusCode: 404,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          error: `No entry for domain: '${domain}'`,
+          error: `No entry for domain: '${name}'`,
         }),
       };
     }
@@ -42,7 +42,7 @@ const removeDomain = async (event) => {
     let idp = result.Items[0].idp;
 
     const params = {
-      TableName: process.env.DOMAINS_TABLE,
+      TableName: process.env.VERIFICATIONS_TABLE,
       Key: {
         domain,
         idp,
@@ -66,7 +66,7 @@ const removeDomain = async (event) => {
       statusCode: error.statusCode || 501,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        error: `Could not remove the domain entry. Reason: ${error.code}`,
+        error: `Could not remove the verification entry. Reason: ${error.code}`,
       }),
     };
   }

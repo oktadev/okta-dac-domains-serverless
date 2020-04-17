@@ -10,15 +10,15 @@ const listDomains = async (event, context, callback) => {
 
   try {
     var params = {
-      TableName: process.env.DYNAMODB_TABLE,
-      IndexName: "idps-" + process.env.DYNAMODB_TABLE,
+      TableName: process.env.DOMAINS_TABLE,
+      IndexName: "idps-" + process.env.DOMAINS_TABLE,
       KeyConditionExpression: "idp = :value",
       ExpressionAttributeValues: {
         ":value": idp,
       },
-      ProjectionExpression: "#name,created,verified",
+      ProjectionExpression: "#domain,created,verified",
       ExpressionAttributeNames: {
-        "#name": "name", // name is a reserved word, should have just used domain :P
+        "#domain": "domain", // name is a reserved word, should have just used domain :P
       },
     };
 
