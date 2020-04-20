@@ -9,6 +9,7 @@ plugins:
   - serverless-domain-manager
 
 custom:
+  env: ${file(./${self:provider.stage}.env.json)}
   customDomain:
     domainName: api-${self:provider.stage}.idp.rocks
     basePath: ""
@@ -24,6 +25,10 @@ custom:
     stages:
       - dev
       - test
+  okta:
+    issuer: ${self:custom.env.ISSUER}
+    clientId: ${self:custom.env.CLIENT_ID}
+    audience: ${self:custom.env.AUDIENCE}
   jest:
     # You can pass jest options here
     # See details here: https://facebook.github.io/jest/docs/configuration.html
@@ -42,6 +47,11 @@ provider:
     DNS_VERIFY_PREFIX: _oktadac.verification
     DOMAINS_TABLE: ${self:service}-${opt:stage, self:provider.stage}
     VERIFICATIONS_TABLE: ${self:service}-verify-${opt:stage, self:provider.stage}
+    OKTA_ISSUER: ${self:custom.env.ISSUER}
+    OKTA_AUDIENCE: ${self:custom.env.AUDIENCE}
+    OKTA_CLIENT_ID: ${self:custom.env.CLIENT_ID}
+    OKTA_GROUP_CLAIM_ADMINS: ${self:custom.env.ADMIN_GROUP}
+    ALLOW_ORIGIN: ${self:custom.env.ALLOW_ORIGIN}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -69,45 +79,63 @@ provider:
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.VERIFICATIONS_TABLE}/index/*"
 
 functions:
+  oktaAuth:
+    handler: authorizer/handler.auth
+    cors: true
+
   addDomain:
     handler: domains/create.handler
+    okta:
+      expr: "'SUPERUSERS' in groups"
     events:
       - http:
           path: domains
           method: post
           cors: true
-
-  # verifyDomain:
-  #   handler: domains/update.handler
-  #   events:
-  #     - http:
-  #         path: domains/{name}/verify
-  #         method: put
-  #         cors: true
+          authorizer:
+            name: oktaAuth
+            identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
+            resultTtlInSeconds: 0
 
   getDomain:
     handler: domains/get.handler
+    okta: true
     events:
       - http:
           path: domains/{domain}
           method: get
           cors: true
+          authorizer:
+            name: oktaAuth
+            identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
+            resultTtlInSeconds: 0
 
   removeDomain:
     handler: domains/delete.handler
+    okta:
+      expr: "'SUPERUSERS' in groups"
     events:
       - http:
           path: domains/{domain}
           method: delete
           cors: true
+          authorizer:
+            name: oktaAuth
+            identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
+            resultTtlInSeconds: 0
 
   listDomains:
     handler: domains/list.handler
+    okta: true
     events:
       - http:
           path: domains
           method: get
           cors: true
+          authorizer:
+            name: oktaAuth
+            identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
+            resultTtlInSeconds: 0
 
   webfinger:
     handler: domains/webfinger.handler
@@ -119,35 +147,68 @@ functions:
 
   createVerification:
     handler: verifications/create.handler
+    okta: true
     events:
       - http:
           path: verifications
           method: post
           cors: true
+          authorizer:
+            name: oktaAuth
+            identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
+            resultTtlInSeconds: 0
 
   checkVerification:
     handler: verifications/verify.handler
+    okta: true
     events:
       - http:
           path: verifications/{domain}
           method: put
           cors: true
+          authorizer:
+            name: oktaAuth
+            identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
+            resultTtlInSeconds: 0
 
   getVerification:
     handler: verifications/get.handler
+    okta: true
     events:
       - http:
           path: verifications/{domain}
           method: get
           cors: true
+          authorizer:
+            name: oktaAuth
+            identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
+            resultTtlInSeconds: 0
 
   deleteVerification:
     handler: verifications/delete.handler
+    okta: true
     events:
       - http:
           path: verifications/{domain}
           method: delete
           cors: true
+          authorizer:
+            name: oktaAuth
+            identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
+            resultTtlInSeconds: 0
+
+  listVerifications:
+    handler: verifications/list.handler
+    okta: true
+    events:
+      - http:
+          path: verifications
+          method: get
+          cors: true
+          authorizer:
+            name: oktaAuth
+            identityValidationExpression: ^Bearer [-0-9a-zA-z\.]*$
+            resultTtlInSeconds: 0
 
 resources:
   Resources:
@@ -204,7 +265,7 @@ resources:
           - AttributeName: domain
             KeyType: RANGE
         GlobalSecondaryIndexes:
-          - IndexName: idps-${self:provider.environment.DOMAINS_TABLE}
+          - IndexName: idps-${self:provider.environment.VERIFICATIONS_TABLE}
             KeySchema:
               - AttributeName: idp
                 KeyType: HASH

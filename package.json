@@ -12,11 +12,14 @@
     "axios": "^0.19.2",
     "lodash": "^4.17.15",
     "middy": "^0.36.0",
-    "uuid4": "^1.1.4"
+    "uuid4": "^1.1.4",
+    "@okta/jwt-verifier": "^1.0.0",
+    "aws-auth-policy": "^0.1.0",
+    "jexl": "^2.2.2"
   },
   "devDependencies": {
     "@shelf/jest-dynamodb": "^1.7.0",
-    "aws-sdk": "^2.657.0",
+    "aws-sdk": "^2.658.0",
     "jest": "^25.3.0",
     "local-dynamo": "^0.6.0",
     "promisify": "0.0.3",

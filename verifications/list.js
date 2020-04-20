@@ -4,19 +4,20 @@ const middy = require("middy");
 const { cors, httpErrorHandler } = require("middy/middlewares");
 const dynamodb = require("./_dynamodb");
 
-const listDomains = async (event, context, callback) => {
+const listVerifications = async (event, context, callback) => {
   console.log("Query Parameters", event.queryStringParameters);
   let idp = event.queryStringParameters.idp;
 
   try {
     var params = {
-      TableName: process.env.DOMAINS_TABLE,
-      IndexName: "idps-" + process.env.DOMAINS_TABLE,
+      TableName: process.env.VERIFICATIONS_TABLE,
+      IndexName: "idps-" + process.env.VERIFICATIONS_TABLE,
       KeyConditionExpression: "idp = :value",
       ExpressionAttributeValues: {
         ":value": idp,
       },
-      ProjectionExpression: "#domain,created,verified",
+      ProjectionExpression:
+        "#domain,created,verified, dnsVerificationString, tenant",
       ExpressionAttributeNames: {
         "#domain": "domain",
       },
@@ -38,13 +39,13 @@ const listDomains = async (event, context, callback) => {
       statusCode: error.statusCode || 501,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        error: "Could not fetch the domains for the IdP",
+        error: "Could not fetch the verifications for the IdP",
       }),
     };
   }
 };
 
-const handler = middy(listDomains)
+const handler = middy(listVerifications)
   .use(httpErrorHandler()) // handles common http errors and returns proper responses
   .use(cors()); // Adds CORS headers to responses
 
