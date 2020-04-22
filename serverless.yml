@@ -237,6 +237,7 @@ resources:
               NonKeyAttributes:
                 - domain
                 - created
+                - createdBy
                 - verified
               ProjectionType: INCLUDE
           - IndexName: domains-${self:provider.environment.DOMAINS_TABLE}
@@ -247,6 +248,7 @@ resources:
               NonKeyAttributes:
                 - idp
                 - created
+                - createdBy
                 - verified
               ProjectionType: INCLUDE
         BillingMode: PAY_PER_REQUEST
@@ -275,7 +277,9 @@ resources:
                 - domain
                 - tenant
                 - created
+                - createdBy
                 - updated
+                - updatedBy
                 - verified
                 - dnsVerificationString
               ProjectionType: INCLUDE
@@ -288,7 +292,9 @@ resources:
                 - idp
                 - tenant
                 - created
+                - createdBy
                 - updated
+                - updatedBy
                 - verified
                 - dnsVerificationString
               ProjectionType: INCLUDE

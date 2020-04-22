@@ -1,8 +1,10 @@
 "use strict";
 
 const middy = require("middy");
-const { cors, httpErrorHandler } = require("middy/middlewares");
+const { cors } = require("middy/middlewares");
 const _db = require("../_dynamodb");
+const jwtMiddleware = require("../jwtMiddleware");
+const jsonHttpErrorHandler = require("../jsonHttpErrorHandler");
 
 const listVerifications = async (event, context, callback) => {
   console.log("Query Parameters", event.queryStringParameters);
@@ -46,7 +48,12 @@ const listVerifications = async (event, context, callback) => {
 };
 
 const handler = middy(listVerifications)
-  .use(httpErrorHandler()) // handles common http errors and returns proper responses
+  .use(
+    jwtMiddleware({
+      idp: "event.queryStringParameters.idp",
+    })
+  )
+  .use(jsonHttpErrorHandler()) // handles common http errors and returns proper responses
   .use(cors()); // Adds CORS headers to responses
 
 module.exports = { handler };

@@ -1,12 +1,15 @@
 "use strict";
 
+const _ = require("lodash");
 const _db = require("../_dynamodb");
 const middy = require("middy");
-const { cors, httpErrorHandler } = require("middy/middlewares");
+const { cors } = require("middy/middlewares");
+const jwtMiddleware = require("../jwtMiddleware");
+const jsonHttpErrorHandler = require("../jsonHttpErrorHandler");
 
 const removeDomain = async (event) => {
   console.log("domain", event.pathParameters);
-
+  console.log("Middleware Okta Info", event.oktaTenants);
   let { domain } = event.pathParameters;
 
   try {
@@ -40,6 +43,17 @@ const removeDomain = async (event) => {
     }
 
     let idp = result.Items[0].idp;
+    if (
+      !_.find(event.oktaTenants, {
+        idp,
+      })
+    ) {
+      return {
+        statusCode: 403,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ error: `Forbidden - No access to ${domain}` }),
+      };
+    }
 
     // delete the domain
     let res = await _db.deleteVerification(idp, domain);
@@ -66,7 +80,8 @@ const removeDomain = async (event) => {
 };
 
 const handler = middy(removeDomain)
-  .use(httpErrorHandler()) // handles common http errors and returns proper responses
+  .use(jsonHttpErrorHandler()) // handles common http errors and returns proper responses
+  .use(jwtMiddleware({}))
   .use(cors()); // Adds CORS headers to responses
 
 module.exports = { handler };

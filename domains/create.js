@@ -9,7 +9,7 @@ const {
   httpErrorHandler,
 } = require("middy/middlewares");
 
-const createDomain = async (event) => {
+const createDomain = async (event, context) => {
   const { domain, idp, tenant, verified } = event.body;
 
   try {
