@@ -1,7 +1,7 @@
 "use strict";
 
 const _ = require("lodash");
-const dynamodb = require("./_dynamodb");
+const _db = require("../_dynamodb");
 const axios = require("axios");
 const middy = require("middy");
 const { cors, httpErrorHandler } = require("middy/middlewares");
@@ -30,7 +30,7 @@ const checkVerification = async (event) => {
     };
 
     // fetch all domains from the database that match an idp
-    let result = await dynamodb.query(params).promise();
+    let result = await _db.client.query(params).promise();
 
     if (result.Items.length > 0) {
       console.log("Got update" + JSON.stringify(result.Items));
@@ -52,10 +52,6 @@ const checkVerification = async (event) => {
           }
         }
 
-        /*let responseData = dnsLookup.data.Answer[0].data;
-        console.log("data", responseData);
-        console.log("dbVerification", existing.dnsVerificationString);
-        verified = responseData === '"' + existing.dnsVerificationString + '"';*/
         console.log("DNS verification result", verified);
 
         if (verified) {
@@ -76,7 +72,7 @@ const checkVerification = async (event) => {
             "Creating entry in domains table: " + JSON.stringify(params2)
           );
 
-          let result = await dynamodb.put(params2).promise();
+          let result = await _db.client.put(params2).promise();
           console.log("Domains creation status " + JSON.stringify(result));
         }
 
@@ -98,7 +94,7 @@ const checkVerification = async (event) => {
           ReturnValues: "ALL_NEW",
         };
 
-        let result2 = await dynamodb.update(params3).promise();
+        let result2 = await _db.client.update(params3).promise();
         return {
           statusCode: 200,
           headers: {

@@ -1,6 +1,6 @@
 "use strict";
 
-const dynamodb = require("./_dynamodb");
+const _db = require("../_dynamodb");
 const middy = require("middy");
 const { cors, httpErrorHandler } = require("middy/middlewares");
 
@@ -25,7 +25,7 @@ const webfinger = async (event) => {
   };
 
   try {
-    let result = await dynamodb.query(params).promise();
+    let result = await _db.client.query(params).promise();
     console.log("Got result", JSON.stringify(result));
     if (result.Items.length != 1) {
       return {

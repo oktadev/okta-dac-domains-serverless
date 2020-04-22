@@ -11,12 +11,9 @@
 
 Test your service locally, without having to deploy it first.
 
-Install dependencies, installl dynamodb/local stack, start serverless-offline:
-
-```bash
-npm install
-serverless dynamodb install
-```
+1. Install dependencies
+2. Installl dynamodb/local stack
+3. Start serverless-offline
 
 ### Run service offline
 
@@ -24,7 +21,14 @@ Make sure to set `IS_OFFLINE` to `true`. If you don't set this environment varia
 
 ```bash
 export IS_OFFLINE=true
+npm install
+serverless dynamodb install
 serverless offline start
+```
+
+```bash
+
+
 ```
 
 ## AWS Stack
@@ -47,10 +51,16 @@ customDomain:
 Next, run
 
 ```bash
-serverless create_domain
+serverless create_domain -v
 ```
 
 This will create a custom domain in your API Gateway.
+
+```bash
+Serverless: Skipping creation of Route53 record.
+Serverless: Custom domain api.<mydomain> was created.
+            New domains may take up to 40 minutes to be initialized.
+```
 
 This was created with the default setup:
 ![API Gateway - Custom Domains](API_Gateway_Custom_Domains.png)

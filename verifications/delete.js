@@ -1,6 +1,6 @@
 "use strict";
 
-const dynamodb = require("./_dynamodb");
+const _db = require("../_dynamodb");
 const middy = require("middy");
 const { cors, httpErrorHandler } = require("middy/middlewares");
 
@@ -25,7 +25,7 @@ const removeDomain = async (event) => {
     };
 
     // fetch all domains from the database that match an idp
-    let result = await dynamodb.query(queryParams).promise();
+    let result = await _db.client.query(queryParams).promise();
 
     console.log(JSON.stringify(result.Items));
 
@@ -34,29 +34,22 @@ const removeDomain = async (event) => {
         statusCode: 404,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          error: `No entry for domain: '${name}'`,
+          error: `No entry for verification: '${domain}'`,
         }),
       };
     }
 
     let idp = result.Items[0].idp;
 
-    const params = {
-      TableName: process.env.VERIFICATIONS_TABLE,
-      Key: {
-        domain,
-        idp,
-      },
-      ReturnValues: "ALL_OLD",
-    };
+    // delete the domain
+    let res = await _db.deleteVerification(idp, domain);
 
-    console.log("Delete Item", JSON.stringify(params));
+    // delete the verification
+    let res2 = await _db.deleteDomain(idp, domain);
 
-    // delete the domain from the database
-    let res = await dynamodb.delete(params).promise();
     console.log("Dynamo db", JSON.stringify(res));
     return {
-      statusCode: 200,
+      statusCode: 204,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(res.Attributes),
     };

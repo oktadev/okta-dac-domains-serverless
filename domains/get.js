@@ -2,7 +2,7 @@
 
 const middy = require("middy");
 const { cors, httpErrorHandler } = require("middy/middlewares");
-const dynamodb = require("./_dynamodb");
+const _db = require("../_dynamodb");
 
 const getDomain = async (event, context, callback) => {
   console.log("domain", event.pathParameters);
@@ -23,7 +23,7 @@ const getDomain = async (event, context, callback) => {
     };
 
     // fetch all domains from the database that match an idp
-    let result = await dynamodb.query(params).promise();
+    let result = await _db.client.query(params).promise();
 
     if (result.Items.length > 0) {
       return {

@@ -20,7 +20,7 @@ module.exports.auth = (event, context) => {
   apiOptions.restApiId = apiGatewayArnTmp[0];
   apiOptions.stage = apiGatewayArnTmp[1];
 
-  console.log("Verifying Access Token", accessTokenString);
+  //console.log("Verifying Access Token", accessTokenString);
   oktaJwtVerifier
     .verifyAccessToken(accessTokenString, process.env.OKTA_AUDIENCE)
     .then((jwt) => {

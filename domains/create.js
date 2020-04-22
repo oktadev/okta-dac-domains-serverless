@@ -1,6 +1,6 @@
 "use strict";
 
-const dynamodb = require("./_dynamodb");
+const _db = require("../_dynamodb");
 const middy = require("middy");
 const {
   cors,
@@ -29,7 +29,7 @@ const createDomain = async (event) => {
     // write the domain entry to the database
     console.log("Writing to dynamo DB", JSON.stringify(params));
 
-    let result = await dynamodb.put(params).promise();
+    let result = await _db.client.put(params).promise();
     return {
       statusCode: 200,
       headers: {
