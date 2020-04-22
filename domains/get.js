@@ -1,7 +1,8 @@
 "use strict";
 
 const middy = require("middy");
-const { cors, httpErrorHandler } = require("middy/middlewares");
+const { cors } = require("middy/middlewares");
+const jsonHttpErrorHandler = require("../jsonHttpErrorHandler");
 const _db = require("../_dynamodb");
 
 const getDomain = async (event, context, callback) => {
@@ -19,7 +20,7 @@ const getDomain = async (event, context, callback) => {
       ExpressionAttributeValues: {
         ":value": domain,
       },
-      ProjectionExpression: "idp, created, verified",
+      ProjectionExpression: "idp, created, createdBy, tenant, verified",
     };
 
     // fetch all domains from the database that match an idp
@@ -53,7 +54,7 @@ const getDomain = async (event, context, callback) => {
 };
 
 const handler = middy(getDomain)
-  .use(httpErrorHandler()) // handles common http errors and returns proper responses
+  .use(jsonHttpErrorHandler()) // handles common http errors and returns proper responses
   .use(cors()); // Adds CORS headers to responses
 
 module.exports = { handler };

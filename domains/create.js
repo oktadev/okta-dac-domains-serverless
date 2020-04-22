@@ -2,15 +2,15 @@
 
 const _db = require("../_dynamodb");
 const middy = require("middy");
-const {
-  cors,
-  jsonBodyParser,
-  validator,
-  httpErrorHandler,
-} = require("middy/middlewares");
+const { cors, jsonBodyParser, validator } = require("middy/middlewares");
+const jwtMiddleware = require("../jwtMiddleware");
+const jsonHttpErrorHandler = require("../jsonHttpErrorHandler");
 
 const createDomain = async (event, context) => {
   const { domain, idp, tenant, verified } = event.body;
+  let { uid } = handler.event.requestContext.authorizer;
+
+  console.log("In createDomain", uid);
 
   try {
     const params = {
@@ -21,6 +21,7 @@ const createDomain = async (event, context) => {
         tenant,
         verified,
         created: new Date().getTime(),
+        createdBy: uid,
       },
       ConditionExpression: "attribute_not_exists(#domain)",
       ExpressionAttributeNames: { "#domain": "domain" },
@@ -61,9 +62,8 @@ const inputSchema = {
         domain: { type: "string" },
         tenant: { type: "string" },
         idp: { type: "string" },
-        verified: { type: "boolean" },
       },
-      required: ["domain", "tenant", "idp"], // Insert here all required event properties
+      required: ["domain", "tenant", "idp"],
     },
   },
 };
@@ -71,7 +71,7 @@ const inputSchema = {
 const handler = middy(createDomain)
   .use(jsonBodyParser()) // parses the request body when it's a JSON and converts it to an object
   .use(validator({ inputSchema })) // validates the input
-  .use(httpErrorHandler()) // handles common http errors and returns proper responses
+  .use(jsonHttpErrorHandler()) // handles common http errors and returns proper responses
   .use(cors()); // Adds CORS headers to responses
 
 module.exports = { handler };

@@ -2,7 +2,8 @@
 
 const _db = require("../_dynamodb");
 const middy = require("middy");
-const { cors, httpErrorHandler } = require("middy/middlewares");
+const { cors } = require("middy/middlewares");
+const jsonHttpErrorHandler = require("../jsonHttpErrorHandler");
 
 const webfinger = async (event) => {
   console.log("Query Parameters", event.queryStringParameters);
@@ -74,7 +75,7 @@ const webfinger = async (event) => {
 };
 
 const handler = middy(webfinger)
-  .use(httpErrorHandler()) // handles common http errors and returns proper responses
+  .use(jsonHttpErrorHandler()) // handles common http errors and returns proper responses
   .use(cors()); // Adds CORS headers to responses
 
 module.exports = { handler };

@@ -2,7 +2,8 @@
 
 const _db = require("../_dynamodb");
 const middy = require("middy");
-const { cors, httpErrorHandler } = require("middy/middlewares");
+const { cors } = require("middy/middlewares");
+const jsonHttpErrorHandler = require("../jsonHttpErrorHandler");
 
 const removeDomain = async (event) => {
   console.log("domain", event.pathParameters);
@@ -41,7 +42,7 @@ const removeDomain = async (event) => {
 
     let idp = result.Items[0].idp;
 
-    // delete the verification from the database
+    // delete any verifications from the database
     let res2 = await _db.deleteVerification(idp, domain);
     // delete the domain from the database
     let res = await _db.deleteDomain(idp, domain);
@@ -65,7 +66,7 @@ const removeDomain = async (event) => {
 };
 
 const handler = middy(removeDomain)
-  .use(httpErrorHandler()) // handles common http errors and returns proper responses
+  .use(jsonHttpErrorHandler()) // handles common http errors and returns proper responses
   .use(cors()); // Adds CORS headers to responses
 
 module.exports = { handler };
